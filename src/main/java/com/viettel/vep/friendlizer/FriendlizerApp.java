@@ -109,7 +109,7 @@ public class FriendlizerApp {
 
         } catch (IOException e) {
             ret = false;
-            Log("Create temporaty file error.");
+            Log("Create temporaty file error: " + e.getMessage());
         } finally {
             if (jarfile != null) {
                 try {
@@ -177,7 +177,7 @@ public class FriendlizerApp {
             return true;
 
         } catch (IOException e) {
-            Log("Copy jarEntries to file " + newFile + " error.");
+            Log("Copy jarEntries to file " + newFile + " error: " + e.getMessage());
             return false;
 
         } finally {
