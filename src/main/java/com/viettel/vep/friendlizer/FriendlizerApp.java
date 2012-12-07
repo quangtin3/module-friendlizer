@@ -63,10 +63,18 @@ public class FriendlizerApp {
                 && targetFile.isFile()
                 && newFile.exists()
                 && newFile.canRead()) {
-            targetFile.deleteOnExit();
 
-            return newFile.renameTo(new File(targetPath));
+            targetFile.delete();
+            try {
+                Log("start replace");
+                targetFile.createNewFile();
+                return newFile.renameTo(targetFile);
+            } catch (IOException e) {
+                Log("replace error: " + e.getMessage());
+                return false;
+            }
         } else {
+            Log("invalid input");
             return false;
         }
     }
@@ -78,20 +86,69 @@ public class FriendlizerApp {
      * @param filename jar file to patch
      * @throws IOException error occur
      */
-    private static void patchingModuleJarFile(String filename) throws IOException {
-        JarFile jarfile = new JarFile(filename);
+    private static boolean patchingModuleJarFile(String filename) {
 
-        Manifest manifest = jarfile.getManifest();
-        Attributes att = manifest.getMainAttributes();
+        String temporatyFile = filename + SUBFIX_VEP_TOOL_TEMPLATE_ZIP_FILE;
 
-        if (updateManifestFriendList(att)) {
+        /* Start make new temporary file */
+        JarFile jarfile = null;
+        boolean ret;
+        try {
+            jarfile = new JarFile(filename);
+            if (jarfile.getManifest() == null) {
+                Log("Just ignore file without Manifest: " + filename);
+                return true;
+            }
+            if (updateManifestFriendListIfNeed(jarfile.getManifest().getMainAttributes())) {
+                ret = copyAllJarEntries(jarfile, temporatyFile);
+            } else {
+                Log("No need to patch this file: " + filename);
+                return true;
+            }
 
-            byte[] buffer = new byte[BUFFER_SIZE];
+        } catch (IOException e) {
+            ret = false;
+            Log("Create temporaty file error.");
+        } finally {
+            if (jarfile != null) {
+                try {
+                    jarfile.close();
+                } catch (IOException e) {
+                }
+            }
+        }
 
-            Log("Start patching file: " + filename);
-            String temporatyFile = filename + SUBFIX_VEP_TOOL_TEMPLATE_ZIP_FILE;
-            FileOutputStream fos = new FileOutputStream(temporatyFile);
-            JarOutputStream jaros = new JarOutputStream(fos, jarfile.getManifest());
+        /* If we have new file, using it to replace the old one */
+        if (ret) {
+            Log("Replace old file");
+            if (replaceFile(filename, temporatyFile)) {
+                Log("Replace successful!");
+                return true;
+            } else {
+                Log("Can't replace file " + filename + " with file " + temporatyFile);
+            }
+        } else {
+            Log("No temporary file created.");
+        }
+        return false;
+    }
+
+    /**
+     * Copy all jarFile entries to new file
+     *
+     * @param jarfile
+     * @param newFile
+     * @return
+     * @throws IOException
+     */
+    private static boolean copyAllJarEntries(JarFile jarfile, String newFile) {
+        byte[] buffer = new byte[BUFFER_SIZE];
+
+        FileOutputStream fos = null;
+        JarOutputStream jaros = null;
+        try {
+            fos = new FileOutputStream(newFile);
+            jaros = new JarOutputStream(fos, jarfile.getManifest());
 
             Enumeration<JarEntry> jarEntries = jarfile.entries();
             while (jarEntries.hasMoreElements()) {
@@ -103,7 +160,7 @@ public class FriendlizerApp {
                     InputStream entryIs = jarfile.getInputStream(jarEntry);
                     jaros.putNextEntry(new JarEntry(jarEntry.getName()));
 
-                    int bytesRead = 0;
+                    int bytesRead;
                     while ((bytesRead = entryIs.read(buffer)) != -1) {
                         jaros.write(buffer, 0, bytesRead);
                     }
@@ -113,18 +170,30 @@ public class FriendlizerApp {
                 }
             }
 
+            jaros.flush();
             jaros.close();
             fos.close();
-            jarfile.close();
+            return true;
 
-            Log("Replace old file");
-            if (replaceFile(filename, temporatyFile)) {
-                Log("Can't replace file " + filename + " with file " + temporatyFile);
-            } else {
-                Log("Replace successful!");
+        } catch (IOException e) {
+            Log("Copy jarEntries to file " + newFile + " error.");
+            return false;
+
+        } finally {
+            if (jaros != null) {
+                try {
+
+                    jaros.close();
+                } catch (IOException e) {
+                }
             }
-        } else {
-            Log("No need to patch file: " + filename);
+            if (fos != null) {
+                try {
+
+                    fos.close();
+                } catch (IOException e) {
+                }
+            }
         }
     }
 
@@ -158,7 +227,7 @@ public class FriendlizerApp {
      * @param att Manifest Main Attributes
      * @return true if the Attributes need to modified (already modified)
      */
-    private static boolean updateManifestFriendList(Attributes att) {
+    private static boolean updateManifestFriendListIfNeed(Attributes att) {
         for (Object key : att.keySet()) {
 
             if (key instanceof Attributes.Name) {
