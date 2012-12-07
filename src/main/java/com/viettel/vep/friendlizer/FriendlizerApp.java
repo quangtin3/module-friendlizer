@@ -17,7 +17,7 @@ import java.util.jar.JarOutputStream;
  */
 public class FriendlizerApp {
 
-    private static final String IDE_ROOT_DIRECTORY_VAR = "/home/quanghx/modules/";
+    private static final String IDE_ROOT_DIRECTORY_VAR = "/opt/netbeans-7.2.1/";
     /**
      * List of modules to patch
      */
