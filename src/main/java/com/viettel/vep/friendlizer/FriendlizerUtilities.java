@@ -9,15 +9,16 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
+import javax.swing.JTextArea;
 
 /**
  * Make selected module friendly with Viettel Enterprise Platform Tools
  *
  * @author quanghx2@viettel.com.vn
  */
-public class FriendlizerApp {
+public class FriendlizerUtilities {
 
-    private static final String IDE_ROOT_DIRECTORY_VAR = "/opt/netbeans-7.2.1/";
+    static private final String NEWLINE = "\n";
     /**
      * List of modules to patch, for the Netbeans 7.2.1
      */
@@ -35,27 +36,36 @@ public class FriendlizerApp {
     private static final String META_INF_MANIFESTM_ENTRY = "META-INF/MANIFEST.MF";
     private static final String SUBFIX_VEP_TOOL_TEMPLATE_ZIP_FILE = "_vep_tool_template.zip";
 
-    public static void main(String[] args) throws IOException {
-        Log("Viettel Enterprise Platform - Module Friendlizer");
+    public static boolean patchingNetBeans(String netbeansPath, JTextArea logger) {
+        Log(logger, "Viettel Enterprise Platform - Module Friendlizer");
 
-        for (String module : modules) {
-            Log("Examining " + module);
-            String moduleFile = IDE_ROOT_DIRECTORY_VAR + module;
+        File netbeansFolder = new File(netbeansPath);
+        if (netbeansFolder.exists() && netbeansFolder.isDirectory()) {
 
-            if (module.endsWith("jar") && (new File(moduleFile)).isFile()) {
-                patchingModuleJarFile(moduleFile);
+            String ideFolder = netbeansPath.endsWith("/") ? netbeansPath : netbeansPath + "/";
+            for (String module : modules) {
+                Log(logger, "Examining " + module);
+
+                String modulePath = ideFolder + module;
+                if ((new File(modulePath)).isFile()) {
+                    return patchingModuleJarFile(modulePath, logger);
+                } else {
+                    Log(logger, "Not a file");
+                }
             }
         }
-
+        return false;
     }
 
     /**
-     * Simple system log. Message will go on Terminal Output for now.
+     * Log message to a logger.
      *
-     * @param message message your need to log
+     * @param logger logger, in this example it is a JTextArea
+     * @param message message to be logged
      */
-    private static void Log(String message) {
-        System.out.println(message);
+    public static void Log(JTextArea logger, String message) {
+        logger.append(message + NEWLINE);
+        logger.setCaretPosition(logger.getDocument().getLength());
     }
 
     /**
@@ -64,7 +74,7 @@ public class FriendlizerApp {
      * @param targetPath target path
      * @param newPath new file path
      */
-    private static boolean replaceFile(String targetPath, String newPath) {
+    private static boolean replaceFile(String targetPath, String newPath, JTextArea logger) {
         File targetFile = new File(targetPath);
         File newFile = new File(newPath);
 
@@ -75,15 +85,15 @@ public class FriendlizerApp {
 
             targetFile.delete();
             try {
-                Log("start replace");
+                Log(logger, "start replace");
                 targetFile.createNewFile();
                 return newFile.renameTo(targetFile);
             } catch (IOException e) {
-                Log("replace error: " + e.getMessage());
+                Log(logger, "replace error: " + e.getMessage());
                 return false;
             }
         } else {
-            Log("invalid input");
+            Log(logger, "invalid input");
             return false;
         }
     }
@@ -95,7 +105,7 @@ public class FriendlizerApp {
      * @param filename jar file to patch
      * @throws IOException error occur
      */
-    private static boolean patchingModuleJarFile(String filename) {
+    private static boolean patchingModuleJarFile(String filename, JTextArea logger) {
 
         String temporatyFile = filename + SUBFIX_VEP_TOOL_TEMPLATE_ZIP_FILE;
 
@@ -105,19 +115,19 @@ public class FriendlizerApp {
         try {
             jarfile = new JarFile(filename);
             if (jarfile.getManifest() == null) {
-                Log("Just ignore file without Manifest: " + filename);
+                Log(logger, "Just ignore file without Manifest: " + filename);
                 return true;
             }
             if (updateManifestFriendList(jarfile.getManifest().getMainAttributes())) {
-                ret = copyAllJarEntries(jarfile, temporatyFile);
+                ret = copyAllJarEntries(jarfile, temporatyFile, logger);
             } else {
-                Log("Nothing patched for: " + filename);
+                Log(logger, "Nothing patched for: " + filename);
                 return true;
             }
 
         } catch (IOException e) {
             ret = false;
-            Log("Create temporaty file error: " + e.getMessage());
+            Log(logger, "Create temporaty file error: " + e.getMessage());
         } finally {
             if (jarfile != null) {
                 try {
@@ -129,15 +139,15 @@ public class FriendlizerApp {
 
         /* If we have new file, using it to replace the old one */
         if (ret) {
-            Log("Replace old file");
-            if (replaceFile(filename, temporatyFile)) {
-                Log("Replace successful!");
+            Log(logger, "Replace old file");
+            if (replaceFile(filename, temporatyFile, logger)) {
+                Log(logger, "Replace successful!");
                 return true;
             } else {
-                Log("Can't replace file " + filename + " with file " + temporatyFile);
+                Log(logger, "Can't replace file " + filename + " with file " + temporatyFile);
             }
         } else {
-            Log("No temporary file created.");
+            Log(logger, "No temporary file created.");
         }
         return false;
     }
@@ -150,7 +160,7 @@ public class FriendlizerApp {
      * @return
      * @throws IOException
      */
-    private static boolean copyAllJarEntries(JarFile jarfile, String newFile) {
+    private static boolean copyAllJarEntries(JarFile jarfile, String newFile, JTextArea logger) {
         byte[] buffer = new byte[BUFFER_SIZE];
 
         FileOutputStream fos = null;
@@ -185,7 +195,7 @@ public class FriendlizerApp {
             return true;
 
         } catch (IOException e) {
-            Log("Copy jarEntries to file " + newFile + " error: " + e.getMessage());
+            Log(logger, "Copy jarEntries to file " + newFile + " error: " + e.getMessage());
             return false;
 
         } finally {
