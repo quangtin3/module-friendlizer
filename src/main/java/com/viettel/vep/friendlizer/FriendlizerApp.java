@@ -22,8 +22,9 @@ public class FriendlizerApp {
      * List of modules to patch
      */
     private static String[] modules = new String[]{
-        "platform/modules/org-netbeans-modules-progress-ui.jar",
-        "platform/modules/org-netbeans-modules-progress-ui.jar",};
+        "ide/modules/org-netbeans-modules-html-editor-lib.jar",
+        "java/modules/org-netbeans-modules-j2ee-persistence.jar",
+        "java/modules/org-netbeans-modules-j2ee-persistenceapi.jar"};
     /**
      * Internal Manifest file key words
      */
@@ -106,10 +107,10 @@ public class FriendlizerApp {
                 Log("Just ignore file without Manifest: " + filename);
                 return true;
             }
-            if (updateManifestFriendListIfNeed(jarfile.getManifest().getMainAttributes())) {
+            if (updateManifestFriendList(jarfile.getManifest().getMainAttributes())) {
                 ret = copyAllJarEntries(jarfile, temporatyFile);
             } else {
-                Log("No need to patch this file: " + filename);
+                Log("Nothing patched for: " + filename);
                 return true;
             }
 
@@ -234,7 +235,7 @@ public class FriendlizerApp {
      * @param att Manifest Main Attributes
      * @return true if the Attributes need to modified (already modified)
      */
-    private static boolean updateManifestFriendListIfNeed(Attributes att) {
+    private static boolean updateManifestFriendList(Attributes att) {
         for (Object key : att.keySet()) {
 
             if (key instanceof Attributes.Name) {
