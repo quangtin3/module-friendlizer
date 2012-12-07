@@ -55,7 +55,7 @@ public class FriendlizerApp {
      * @param targetPath target path
      * @param newPath new file path
      */
-    private static void replaceFile(String targetPath, String newPath) {
+    private static boolean replaceFile(String targetPath, String newPath) {
         File targetFile = new File(targetPath);
         File newFile = new File(newPath);
 
@@ -63,16 +63,16 @@ public class FriendlizerApp {
                 && targetFile.isFile()
                 && newFile.exists()
                 && newFile.canRead()) {
-            targetFile.deleteOnExit();            
+            targetFile.deleteOnExit();
 
-            newFile.renameTo(new File(targetPath));
+            return newFile.renameTo(new File(targetPath));
         } else {
-            Log("Can't replace file " + targetPath + " with file " + newPath);
+            return false;
         }
     }
 
     /**
-     * Patching module jar file procedure. For detail see:
+     * Patching module jar file procedure. For technique detail see:
      * http://javahowto.blogspot.com/2011/07/how-to-programmatically-copy-jar-files.html
      *
      * @param filename jar file to patch
@@ -118,7 +118,11 @@ public class FriendlizerApp {
             jarfile.close();
 
             Log("Replace old file");
-            replaceFile(filename, temporatyFile);
+            if (replaceFile(filename, temporatyFile)) {
+                Log("Can't replace file " + filename + " with file " + temporatyFile);
+            } else {
+                Log("Replace successful!");
+            }
         } else {
             Log("No need to patch file: " + filename);
         }
