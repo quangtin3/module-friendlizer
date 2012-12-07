@@ -48,13 +48,15 @@ public class FriendlizerUtilities {
 
                 String modulePath = ideFolder + module;
                 if ((new File(modulePath)).isFile()) {
-                    return patchingModuleJarFile(modulePath, logger);
+                    if (!patchingModuleJarFile(modulePath, logger)) {
+                        return false;
+                    }
                 } else {
                     Log(logger, "Not a file");
                 }
             }
         }
-        return false;
+        return true;
     }
 
     /**

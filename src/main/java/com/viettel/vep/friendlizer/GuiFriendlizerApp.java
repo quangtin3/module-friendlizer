@@ -53,13 +53,13 @@ public class GuiFriendlizerApp extends JPanel implements ActionListener {
         FriendlizerUtilities.Log(logger, "Steps:");
         FriendlizerUtilities.Log(logger, "1.Chosing your NetBeans IDE folder");
         FriendlizerUtilities.Log(logger, "2.Patching it.");
-        FriendlizerUtilities.Log(logger, "--------------------------------------");
+        FriendlizerUtilities.Log(logger, "======================================");
     }
 
     private void initComponent() {
         //Create the logger first, because the action listeners
         //need to refer to it.
-        logger = new JTextArea(8, 40);
+        logger = new JTextArea(8, 50);
         logger.setMargin(new Insets(5, 5, 5, 5));
         logger.setEditable(false);
 
