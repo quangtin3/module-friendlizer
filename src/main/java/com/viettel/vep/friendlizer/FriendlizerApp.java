@@ -19,12 +19,13 @@ public class FriendlizerApp {
 
     private static final String IDE_ROOT_DIRECTORY_VAR = "/opt/netbeans-7.2.1/";
     /**
-     * List of modules to patch
+     * List of modules to patch, for the Netbeans 7.2.1
      */
     private static String[] modules = new String[]{
         "ide/modules/org-netbeans-modules-html-editor-lib.jar",
         "java/modules/org-netbeans-modules-j2ee-persistence.jar",
-        "java/modules/org-netbeans-modules-j2ee-persistenceapi.jar"};
+        "java/modules/org-netbeans-modules-j2ee-persistenceapi.jar",
+        "ide/modules/org-netbeans-modules-web-common.jar"};
     /**
      * Internal Manifest file key words
      */
