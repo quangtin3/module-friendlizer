@@ -17,23 +17,25 @@ import java.util.jar.JarOutputStream;
  */
 public class FriendlizerApp {
 
-    private static final String HOME_QUANGHX_MODULES = "/home/quanghx/modules/";
+    private static final String IDE_ROOT_DIRECTORY_VAR = "/home/quanghx/modules/";
     private static final String VEP_TOOLS_MODULE_NAME = "com.viettel.vep.tools";
     private static final String NETBEANS_MODULE_FRIEND_KEY = "OpenIDE-Module-Friends";
     private static final int BUFFER_SIZE = 4096 * 2;
     private static final String META_INF_MANIFESTM_ENTRY = "META-INF/MANIFEST.MF";
     private static final String SUBFIX_VEP_TOOL_TEMPLATE_ZIP_FILE = "_vep_tool_template.zip";
+    private static String[] modules = new String[]{
+        "platform/modules/org-netbeans-modules-progress-ui.jar",
+        "platform/modules/org-netbeans-modules-progress-ui.jar",};
 
     public static void main(String[] args) throws IOException {
-        System.out.println("Hello World!");
+        Log("Viettel Enterprise Platform - Module Friendlizer");
 
-        File folder = new File(HOME_QUANGHX_MODULES);
-        String[] filenames = folder.list();
+        for (String module : modules) {
+            Log("Examining " + module);
+            String moduleFile = IDE_ROOT_DIRECTORY_VAR + module;
 
-        for (String filename : filenames) {
-            Log("Examining " + filename);
-            if (filename.endsWith("jar") && (new File(HOME_QUANGHX_MODULES + filename)).isFile()) {
-                patchingModuleJarFile(HOME_QUANGHX_MODULES + filename);
+            if (module.endsWith("jar") && (new File(moduleFile)).isFile()) {
+                patchingModuleJarFile(moduleFile);
             }
         }
 
