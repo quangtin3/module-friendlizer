@@ -2,7 +2,7 @@ Module Friendlizer:
 
 Design - User guide - And license (sort of)
 
-NetBeans Platform, to help overall sytem stability, introduce "Implement Dependency": http://wiki.netbeans.org/DevFaqImplementationDependency
+NetBeans Platform, to help overall sytem stability, introduces "Implement Dependency": http://wiki.netbeans.org/DevFaqImplementationDependency
 
 This small tools can help people install Private/Customized/Enterprise Internal Use Plugins on the range of compatible-and-selftested NetBeans version without have to make each version for every NetBeans. Usually, each versions only different in dependence declaration.
 
@@ -28,5 +28,5 @@ mvn clean install assembly:single
 
 * Running it: Module Friendlizer was first intended to embed on other project (installer), but latter It had a GUI (from Java Swing Tutorial) for user to chosing NetBeans folder.
 
-* "License": Basically I copied its pices all over the public internet website, and It only plays a supportin role. So feel free to using it your way.
+* "License": Basically I copied its pices all over the public Internet website, and It only plays a supporting role. So feel free to using it your way.
 
