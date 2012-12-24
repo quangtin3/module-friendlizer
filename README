@@ -28,5 +28,5 @@ mvn clean install assembly:single
 
 * Running it: Module Friendlizer was first intended to embed on other project (installer), but latter It had a GUI (from Java Swing Tutorial) for user to chosing NetBeans folder.
 
-* "License": Basically I copied its pices all over the public Internet website, and It only plays a supporting role. So feel free to using it your way.
+* "License": Basically I copied its pices all over the public Internet website, and It only plays a supporting role. So feel free to use it your way.
 
