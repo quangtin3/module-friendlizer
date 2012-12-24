@@ -1,1 +1,32 @@
-Module Friendlizer
+Module Friendlizer:
+
+Design - User guide - And license (sort of)
+
+NetBeans Platform, to help overall sytem stability, introduce "Implement Dependency": http://wiki.netbeans.org/DevFaqImplementationDependency
+
+This small tools can help people install Private/Customized/Enterprise Internal Use Plugins on the range of compatible-and-selftested NetBeans version without have to make each version for every NetBeans. Usually, each versions only different in dependence declaration.
+
+The best option is asking NetBeans Developers to make your module in their module’s friend-list. But this option is not alway available.
+
+* How "Module Friendlizer" works?
+It depends on a list of module that your module dependent on, for example:
+
+	private static String[] modules = new String[]{
+	        "ide/modules/org-netbeans-modules-html-editor-lib.jar",
+	        "java/modules/org-netbeans-modules-j2ee-persistence.jar",
+	        "java/modules/org-netbeans-modules-j2ee-persistenceapi.jar",
+	        "ide/modules/org-netbeans-modules-web-common.jar"};
+
+and your module identity name:
+
+	private static final String YOUR_MODULE_NAME = "com.your-module-identify-name.here"
+
+Module Friendlizer will add YOUR_MODULE_NAME to each module META-INF/Manifest in the modules list.
+
+* Build it: Module Friendlizer is a typical tiny maven project:
+mvn clean install assembly:single
+
+* Running it: Module Friendlizer was first intended to embed on other project (installer), but latter It had a GUI (from Java Swing Tutorial) for user to chosing NetBeans folder.
+
+* "License": Basically I copied its pices all over the public internet website, and It only plays a supportin role. So feel free to using it your way.
+
