@@ -1,5 +1,6 @@
 package com.viettel.vep.friendlizer;
 
+import com.viettel.vep.friendlizer.ModuleConfiguration.Module;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,36 +20,24 @@ import javax.swing.JTextArea;
 public class FriendlizerUtilities {
 
     static private final String NEWLINE = "\n";
-    /**
-     * List of modules to patch, for the Netbeans 7.2.1
-     */
-    private static String[] modules = new String[]{
-        "ide/modules/org-netbeans-modules-html-editor-lib.jar",
-        "java/modules/org-netbeans-modules-j2ee-persistence.jar",
-        "java/modules/org-netbeans-modules-j2ee-persistenceapi.jar",
-        "ide/modules/org-netbeans-modules-web-common.jar"};
-    /**
-     * Internal Manifest file key words
-     */
-    private static final String VEP_TOOLS_MODULE_NAME = "com.viettel.vep.tools";
     private static final String NETBEANS_MODULE_FRIEND_KEY = "OpenIDE-Module-Friends";
     private static final int BUFFER_SIZE = 4096 * 2;
     private static final String META_INF_MANIFESTM_ENTRY = "META-INF/MANIFEST.MF";
     private static final String SUBFIX_VEP_TOOL_TEMPLATE_ZIP_FILE = "_vep_tool_template.zip";
 
-    public static boolean patchingNetBeans(String netbeansPath, JTextArea logger) {
+    public static boolean patchingNetBeans(String netbeansPath, Module moduleCfg, JTextArea logger) {
         Log(logger, "Viettel Enterprise Platform - Module Friendlizer");
 
         File netbeansFolder = new File(netbeansPath);
         if (netbeansFolder.exists() && netbeansFolder.isDirectory()) {
 
             String ideFolder = netbeansPath.endsWith("/") ? netbeansPath : netbeansPath + "/";
-            for (String module : modules) {
-                Log(logger, "Examining " + module);
+            for (String dependency : moduleCfg.getDependences()) {
+                Log(logger, "Examining " + dependency);
 
-                String modulePath = ideFolder + module;
-                if ((new File(modulePath)).isFile()) {
-                    if (!patchingModuleJarFile(modulePath, logger)) {
+                String dependencyPath = ideFolder + dependency;
+                if ((new File(dependencyPath)).isFile()) {
+                    if (!patchingModuleJarFile(dependencyPath, moduleCfg.getKey(), logger)) {
                         return false;
                     }
                 } else {
@@ -107,7 +96,7 @@ public class FriendlizerUtilities {
      * @param filename jar file to patch
      * @throws IOException error occur
      */
-    private static boolean patchingModuleJarFile(String filename, JTextArea logger) {
+    private static boolean patchingModuleJarFile(String filename, String moduleKey, JTextArea logger) {
 
         String temporatyFile = filename + SUBFIX_VEP_TOOL_TEMPLATE_ZIP_FILE;
 
@@ -120,7 +109,7 @@ public class FriendlizerUtilities {
                 Log(logger, "Just ignore file without Manifest: " + filename);
                 return true;
             }
-            if (updateManifestFriendList(jarfile.getManifest().getMainAttributes())) {
+            if (updateManifestFriendList(jarfile.getManifest().getMainAttributes(), moduleKey)) {
                 ret = copyAllJarEntries(jarfile, temporatyFile, logger);
             } else {
                 Log(logger, "Nothing patched for: " + filename);
@@ -219,43 +208,19 @@ public class FriendlizerUtilities {
     }
 
     /**
-     * Put Viettel Enterprise Platform Tools to friend list
-     *
-     * @param oldFriendList old friend list string
-     * @return new friend list string
-     */
-    private static String putViettelTooltoFriendList(String oldFriendList) {
-        if (oldFriendList == null || oldFriendList.isEmpty()) {
-            return VEP_TOOLS_MODULE_NAME;
-        }
-
-        if (oldFriendList.contains(VEP_TOOLS_MODULE_NAME)) {
-            return oldFriendList;
-        } else {
-            String newFriendList = oldFriendList.trim();
-            if (newFriendList.endsWith(",")) {
-                newFriendList += " " + VEP_TOOLS_MODULE_NAME;
-            } else {
-                newFriendList += ", " + VEP_TOOLS_MODULE_NAME;
-            }
-            return newFriendList;
-        }
-    }
-
-    /**
      * Update manifest attributes
      *
      * @param att Manifest Main Attributes
      * @return true if the Attributes need to modified (already modified)
      */
-    private static boolean updateManifestFriendList(Attributes att) {
+    private static boolean updateManifestFriendList(Attributes att, String moduleKey) {
         for (Object key : att.keySet()) {
 
             if (key instanceof Attributes.Name) {
-                Attributes.Name moduleKey = (Attributes.Name) key;
+                Attributes.Name friendKey = (Attributes.Name) key;
 
                 // Looking for friends key
-                if (moduleKey.toString().equalsIgnoreCase(NETBEANS_MODULE_FRIEND_KEY)) {
+                if (friendKey.toString().equalsIgnoreCase(NETBEANS_MODULE_FRIEND_KEY)) {
                     Object value = att.get(key);
                     if (value instanceof String) {
 
@@ -263,7 +228,7 @@ public class FriendlizerUtilities {
                         String oldFriendList = (String) value;
 
                         // Make new friend list
-                        String newFriendList = putViettelTooltoFriendList(oldFriendList);
+                        String newFriendList = putViettelTooltoFriendList(oldFriendList, moduleKey);
 
                         // Put new list in-place
                         att.put(key, newFriendList);
@@ -275,5 +240,29 @@ public class FriendlizerUtilities {
         }
 
         return false;
+    }
+
+    /**
+     * Put Viettel Enterprise Platform Tools to friend list
+     *
+     * @param oldFriendList old friend list string
+     * @return new friend list string
+     */
+    private static String putViettelTooltoFriendList(String oldFriendList, String moduleKey) {
+        if (oldFriendList == null || oldFriendList.isEmpty()) {
+            return moduleKey;
+        }
+
+        if (oldFriendList.contains(moduleKey)) {
+            return oldFriendList;
+        } else {
+            String newFriendList = oldFriendList.trim();
+            if (newFriendList.endsWith(",")) {
+                newFriendList += " " + moduleKey;
+            } else {
+                newFriendList += ", " + moduleKey;
+            }
+            return newFriendList;
+        }
     }
 }

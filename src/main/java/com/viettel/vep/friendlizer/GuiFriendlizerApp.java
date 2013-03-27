@@ -30,6 +30,7 @@
  */
 package com.viettel.vep.friendlizer;
 
+import com.viettel.vep.friendlizer.ModuleConfiguration.Module;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -44,16 +45,28 @@ public class GuiFriendlizerApp extends JPanel implements ActionListener {
     private JTextArea logger;
     private JFileChooser fc;
     private String selectedNetBeansPath = null;
+    private ModuleConfiguration moduleConfiguration;
 
     public GuiFriendlizerApp() {
         super(new BorderLayout());
-        initComponent();
 
+        // Clear output text area (as a logger)
         logger.setText(null);
-        FriendlizerUtilities.Log(logger, "Steps:");
-        FriendlizerUtilities.Log(logger, "1.Chosing your NetBeans IDE folder");
-        FriendlizerUtilities.Log(logger, "2.Patching it.");
-        FriendlizerUtilities.Log(logger, "======================================");
+
+        try {
+            // Loading configuration
+            moduleConfiguration = new ModuleConfiguration();
+
+            // Loading configuration
+            initComponent();
+
+            FriendlizerUtilities.Log(logger, "Steps:");
+            FriendlizerUtilities.Log(logger, "1.Chosing your NetBeans IDE folder");
+            FriendlizerUtilities.Log(logger, "2.Patching it.");
+            FriendlizerUtilities.Log(logger, "======================================");
+        } catch (IOException e) {
+            FriendlizerUtilities.Log(logger, "Loading configuration error: " + e.getMessage());
+        }
     }
 
     private void initComponent() {
@@ -88,8 +101,6 @@ public class GuiFriendlizerApp extends JPanel implements ActionListener {
         //Add the buttons and the logger to this panel.
         add(buttonPanel, BorderLayout.PAGE_START);
         add(logScrollPane, BorderLayout.CENTER);
-
-
     }
 
     @Override
@@ -114,7 +125,14 @@ public class GuiFriendlizerApp extends JPanel implements ActionListener {
             if (selectedNetBeansPath == null || selectedNetBeansPath.isEmpty()) {
                 FriendlizerUtilities.Log(logger, "Not in valid state");
             } else {
-                if (FriendlizerUtilities.patchingNetBeans(selectedNetBeansPath, logger)) {
+
+                boolean patched = true;
+                for (Module moduleCfg : moduleConfiguration.getModules()) {
+                    patched &= FriendlizerUtilities.patchingNetBeans(selectedNetBeansPath, moduleCfg, logger);
+                }
+
+                if (patched) {
+                    FriendlizerUtilities.Log(logger, "All modules are patched successful!");
                     patchButton.setEnabled(false);
                 } else {
                     patchButton.setEnabled(false);
