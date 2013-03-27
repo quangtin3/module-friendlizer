@@ -48,15 +48,16 @@ public class ModuleConfiguration {
             }
         }
 
+        List<Module> parsingModules = new ArrayList<Module>(moduleKeys.size());
         for (String key : moduleKeys) {
             Module module = new Module();
             module.setKey(properties.getProperty(key + ".key"));
             module.setDescription(properties.getProperty(key + ".description"));
             module.setDependences(properties.getProperty(key + ".dependencies").split(" "));
 
-            modules.add(module);
+            parsingModules.add(module);
         }
-        return modules;
+        return parsingModules;
     }
 
     /**

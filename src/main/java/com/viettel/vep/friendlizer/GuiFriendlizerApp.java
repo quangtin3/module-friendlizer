@@ -50,6 +50,9 @@ public class GuiFriendlizerApp extends JPanel implements ActionListener {
     public GuiFriendlizerApp() {
         super(new BorderLayout());
 
+        // Init jPanel controls
+        initComponent();
+
         // Clear output text area (as a logger)
         logger.setText(null);
 
@@ -57,9 +60,7 @@ public class GuiFriendlizerApp extends JPanel implements ActionListener {
             // Loading configuration
             moduleConfiguration = new ModuleConfiguration();
 
-            // Loading configuration
-            initComponent();
-
+            // Print guide
             FriendlizerUtilities.Log(logger, "Steps:");
             FriendlizerUtilities.Log(logger, "1.Chosing your NetBeans IDE folder");
             FriendlizerUtilities.Log(logger, "2.Patching it.");
@@ -128,6 +129,9 @@ public class GuiFriendlizerApp extends JPanel implements ActionListener {
 
                 boolean patched = true;
                 for (Module moduleCfg : moduleConfiguration.getModules()) {
+                    FriendlizerUtilities.Log(logger, "Patching for:\n\t"
+                            + moduleCfg.getKey() + "\n\t"
+                            + moduleCfg.getDescription());
                     patched &= FriendlizerUtilities.patchingNetBeans(selectedNetBeansPath, moduleCfg, logger);
                 }
 
